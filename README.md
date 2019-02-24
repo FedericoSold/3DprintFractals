@@ -17,3 +17,8 @@ As for the Peano curve, every layer rapresent an iteration of the construction.
 ## Siepinski Tiangle
 
 ## Koch Snowflacke
+
+
+
+## Use
+``$ python3 file.py -> GcodeFile.gcode``
