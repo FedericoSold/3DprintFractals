@@ -14,11 +14,13 @@ The Gcode produce at every layer an iteration of the proceeding.
 ## Pentaflake
 As for the Peano curve, every layer rapresent an iteration of the construction.
 
-## Siepinski Tiangle
+## Siepinski Triangle
 
 ## Koch Snowflacke
 
 
 
-## Use
-``$ python3 file.py -> GcodeFile.gcode``
+## Usage
+For witing the Gcode into ``GcodeFile.gcode`` use 
+``$ python3 file.py -> GcodeFile.gcode`` 
+
