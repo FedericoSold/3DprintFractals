@@ -3,7 +3,8 @@ import math
 
 # settings
 layers_number = 10 # number of layers (they are all identical)
-iterations = 10
+iterations = 12
+dimension = 4 # leght of the smallest segment in millimeters
 
 # plotting variables
 starting_point = (100,100) # Use the center of the printing space
@@ -19,22 +20,17 @@ kE = 2*dz*0.4/math.pi/1.75**2 # moltiplicatore per quantità da estrudere
 
 # usefull costants
 
+# crate the path
 
 def reverse(p):
     q = reversed(p)
     return [(-1)*x for x in q]
 
+path = [1]
+for i in range(iterations):
+    path = path+[1]+reverse(path)
 
-def generatePath(level):
-    if level==1:
-        return [1]
-    else:
-        p = generatePath(level-1)
-        return p+ [1]+reverse(p)
-
-path = generatePath(iterations)
-
-
+# turn the path into Gcode
 
 header = []
 body = []
@@ -62,26 +58,25 @@ for step in path:
     direction %= 4
     old_position = position.copy()
     if direction == 0:
-        position[0] += 1
+        position[0] += dimension
     elif direction == 1:
-        position[1] += 1
+        position[1] += dimension
     elif direction == 2:
-        position[0] += -1
+        position[0] += -dimension
     else:
-        position[1] += -1
+        position[1] += -dimension
     # draw the lines
     E += kE/math.sqrt(2)
     body.append('G1 X%f Y%f E%f' % ((3*old_position[0]+position[0])/4, (3*old_position[1]+position[1])/4, E))
     E += kE*(1/2+1/math.sqrt(2))
     body.append('G1 X%f Y%f E%f' % ((old_position[0]+3*position[0])/4, (old_position[1]+3*position[1])/4, E))
 
-
 footer.append('M104 S0') #spegni l'estusore
 footer.append('M140 S0') # spegni il piano
 footer.append('G28 X0') #home X axis
 footer.append('M84') #sblocca i motori
 
-
+# print Gcode
 for s in header:
     print(s)
 for l in range(layers_number):

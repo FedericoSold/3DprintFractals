@@ -2,8 +2,10 @@ import numpy as np
 import math
 
 # settings
-dimension = 100 # lenght of the top line
+dimension = 100 # length of the top line
 lines_number = 2
+layer_distribution = 'linear'
+layer_repetitions = 8
 
 # useful constants
 mat1 =np.array([[0, -1],[1, 0]])
@@ -40,6 +42,10 @@ header.append('M82') #usa coordinate assolute anche per l'estusore
 header.append('M190 S'+Tbed+' ;bed temperature') # aspetta che la temperatura del piano sia raggiunta
 header.append('M109 T0 S'+Tex+' ; extruder temperature') # aspetta che la temperatura dell'estrusore sia raggiunta
 header.append('M106 S15 ; fan') #accendi la ventola (0 ferma 255 massima)
+# add the skirt
+header.append('G0 X%f  Y%f Z%f ; skirt' % (starting_point[0]-5, starting_point[1]-5, dz0))
+header.append('G2 X%F Y%f I%F J%f E%f'% (starting_point[0]-5, starting_point[1]-5, starting_point[0]+dimension/2, starting_point[1]+dimension/2, kE*math.pi*(dimension+10)*math.sqrt(2)))
+header.append('G2 X%F Y%f I%F J%f E%f'% (starting_point[0]-4, starting_point[1]-4, starting_point[0]+dimension/2, starting_point[1]+dimension/2, kE*math.pi*(dimension+18)*math.sqrt(2)))
 
 footer = []
 
@@ -52,7 +58,6 @@ footer.append('M84') #sblocca i motori
 body = ["" for x in range(layers)]#[';level '+str(l)+'\n' for l in range(layers) ]#np.empty((layers,),object)
 for l in range(layers):
     body[l] += ';level '+str(l)+'\n'
-    body[l] += 'G0 X%f  Y%f Z%f \n' % (starting_point[0], starting_point[1], l*dz+dz0)
 
 def draw(start, end, layer):
     # the layer can be calculated from start and end
@@ -84,11 +89,27 @@ def draw(start, end, layer):
         draw(start+deltaP-deltaO, start+2*deltaP-deltaO, layer+1)
         draw(start+2*deltaP-deltaO, start+2*deltaP, layer+1)
         draw(start+2*deltaP, end, layer+1)
-draw(np.array(starting_point), np.array([starting_point[0]+10,starting_point[1]+10]),0)
+draw(np.array(starting_point), np.array([starting_point[0]+dimension,starting_point[1]+dimension]),0)
+# print the Gcode
 for w in header:
     print(w)
+j = 1
+l = 0
 for e in reversed(body):
-    for i in range(layer_repetitions):
+    if layer_distribution == 'linear':
+        for i in range(layer_repetitions):
+            print('G0 X%f  Y%f Z%f ; layer%d' % (starting_point[0], starting_point[1], l*dz+dz0, l))
+            print(e)
+            l += 1
+    elif layer_distribution == 'exponential':
+        for i in range(layer_repetitions**j):
+            print('G0 X%f  Y%f Z%f ; layer%d' % (starting_point[0], starting_point[1], l*dz+dz0, l))
+            print(e)
+            l += 1
+    else:
+        print('G0 X%f  Y%f Z%f ; layer%d' % (starting_point[0], starting_point[1], l*dz+dz0, l))
         print(e)
+        l += 1
+    j += 1
 for w in footer:
     print(w)

@@ -70,6 +70,7 @@ def draw(start, end, layer):
         draw(start+2*delta-np.matmul(delta,mat1), start+2*delta, layer+1)
         draw(start+2*delta, end, layer+1)
 draw(np.array(starting_point), np.array([starting_point[0]+10,starting_point[1]+10]),0)
+# print Gcode
 for w in start:
     print(w)
 for e in reversed(gcode):
