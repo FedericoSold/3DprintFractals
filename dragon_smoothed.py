@@ -29,6 +29,7 @@ def reverse(p):
     q = reversed(p)
     return [(-1)*x for x in q]
 
+print('Calculating the path...')
 path = [1]
 for i in range(iterations):
     path = path+[1]+reverse(path)
@@ -38,22 +39,22 @@ for i in range(iterations):
 header = []
 body = []
 footer = []
-header.append(';Dragon curve smoothed Gcode')
-header.append(';author: FedericoSold')
+header.append(';Dragon curve smoothed Gcode\n')
+header.append(';author: FedericoSold\n')
 
-header.append('M140 S'+Tbed) # inizia a scaldare il piano fino a Tbed
-header.append('M104 T0 S'+Tex) # inizia a scaldare l'estrusore fino a Tex
-header.append('G21 ; use millimeters') #unita' di misura in millimetri
-header.append('G90') #usa coordinate assolute ripsetto all'origine della macchina
-header.append('G92 E0') # resetta la posizione dell'estrusore
-header.append('M82') #usa coordinate assolute anche per l'estusore
-header.append('M190 S'+Tbed+' ;bed temperature') # aspetta che la temperatura del piano sia raggiunta
-header.append('M109 T0 S'+Tex+' ; extruder temperature') # aspetta che la temperatura dell'estrusore sia raggiunta
-header.append('M106 S15 ; fan') #accendi la ventola (0 ferma 255 massima)
+header.append('M140 S'+Tbed+' ; heat up bed\n') # inizia a scaldare il piano fino a Tbed
+header.append('M104 T0 S'+Tex+'; het up extruder\n') # inizia a scaldare l'estrusore fino a Tex
+header.append('G21 ; use millimeters\n') #unita' di misura in millimetri
+header.append('G90\n') #usa coordinate assolute ripsetto all'origine della macchina
+header.append('G92 E0\n') # resetta la posizione dell'estrusore
+header.append('M82\n') #usa coordinate assolute anche per l'estusore
+header.append('M190 S'+Tbed+' ; wait bed temperature\n') # aspetta che la temperatura del piano sia raggiunta
+header.append('M109 T0 S'+Tex+' ; wait extruder temperature\n') # aspetta che la temperatura dell'estrusore sia raggiunta
+header.append('M106 S15 ; start fan\n') #accendi la ventola (0 ferma 255 massima)
 
-body.append('G92 E0     ; Reset the extruder')
+print('Creating Gcode...')
+body.append('G92 E0     ; Reset the extruder\n')
 E = 0
-
 direction = 0
 position = np.array(starting_point)
 max_position = position.copy()
@@ -80,37 +81,38 @@ for step in path:
             min_position[1] = position[1]
     # draw the lines
     E += kE/math.sqrt(2)
-    body.append('G1 X%f Y%f E%f' % ((3*old_position[0]+position[0])/4, (3*old_position[1]+position[1])/4, E))
+    body.append('G1 X%f Y%f E%f\n' % ((3*old_position[0]+position[0])/4, (3*old_position[1]+position[1])/4, E))
     E += kE*(1/2+1/math.sqrt(2))
-    body.append('G1 X%f Y%f E%f' % ((old_position[0]+3*position[0])/4, (old_position[1]+3*position[1])/4, E))
+    body.append('G1 X%f Y%f E%f\n' % ((old_position[0]+3*position[0])/4, (old_position[1]+3*position[1])/4, E))
 
 # crate the skirt
-header.append('G92 E0     ; Reset the extruder')
-header.append('G0 X%f Y%f Z%f ; make skirt' % (min_position[0]-5, min_position[1]-5, dz0))
-header.append('G1 X%f Y%f E%f ' % (min_position[0]-5, max_position[1]+5, E))
-header.append('G1 X%f Y%f E%f ' % (max_position[0]+5, max_position[1]+5, E))
-header.append('G1 X%f Y%f E%f ' % (max_position[0]+5, min_position[1]-5, E))
-header.append('G1 X%f Y%f E%f ' % (min_position[0]-5, min_position[1]-5, E))
-header.append('G0 X%f Y%f ' % (min_position[0]-4, min_position[1]-4))
-header.append('G1 X%f Y%f E%f ' % (min_position[0]-4, max_position[1]+4, E))
-header.append('G1 X%f Y%f E%f ' % (max_position[0]+4, max_position[1]+4, E))
-header.append('G1 X%f Y%f E%f ' % (max_position[0]+4, min_position[1]-4, E))
-header.append('G1 X%f Y%f E%f ' % (min_position[0]-4, min_position[1]-4, E))
+header.append('G92 E0     ; Reset the extruder\n')
+header.append('G0 X%f Y%f Z%f ; make skirt\n' % (min_position[0]-5, min_position[1]-5, dz0))
+header.append('G1 X%f Y%f E%f \n' % (min_position[0]-5, max_position[1]+5, E))
+header.append('G1 X%f Y%f E%f \n' % (max_position[0]+5, max_position[1]+5, E))
+header.append('G1 X%f Y%f E%f \n' % (max_position[0]+5, min_position[1]-5, E))
+header.append('G1 X%f Y%f E%f \n' % (min_position[0]-5, min_position[1]-5, E))
+header.append('G0 X%f Y%f \n' % (min_position[0]-4, min_position[1]-4))
+header.append('G1 X%f Y%f E%f \n' % (min_position[0]-4, max_position[1]+4, E))
+header.append('G1 X%f Y%f E%f \n' % (max_position[0]+4, max_position[1]+4, E))
+header.append('G1 X%f Y%f E%f \n' % (max_position[0]+4, min_position[1]-4, E))
+header.append('G1 X%f Y%f E%f \n' % (min_position[0]-4, min_position[1]-4, E))
 
-footer.append('M104 S0') #spegni l'estusore
-footer.append('M140 S0') # spegni il piano
-footer.append('G28 X0') #home X axis
-footer.append('M84') #sblocca i motori
+footer.append('M104 S0 ; turn off the extruder\n') #spegni l'estusore
+footer.append('M140 S0 ; turn off bed heat\n') # spegni il piano
+footer.append('G28 X Y ; go home\n') #home X axis
+footer.append('M84 ; stop idle hold\n') #sblocca i motori
 
+print('Writing file...')
 # print Gcode
 # open the file
-sys.stdout = open(filename+'.gcode', 'w')
+file = open(filename+'.gcode', 'w')
 for s in header:
-    print(s)
+    file.write(s)
 for l in range(layers_number):
-    print('; layer %d' %(l))
-    print('G0 X%f  Y%f Z%f' % (starting_point[0], starting_point[1], dz0+l*dz))
+    file.write('; layer %d\n' %(l))
+    file.write('G0 X%f  Y%f Z%f\n' % (starting_point[0], starting_point[1], dz0+l*dz))
     for s in body:
-        print(s)
+        file.write(s)
 for s in footer:
-    print(s)
+    file.write(s)

@@ -6,6 +6,7 @@ layer_repetitions = 2
 layer_distribution = 'exponential'
 iterations = 5
 print_antisnowflake = True
+filename = 'koch_snowflake'
 
 # useful constants
 bhr = math.sqrt(3)/2
@@ -32,24 +33,24 @@ dimension = 100
 thickness = 1
 
 header = []
-header.append(';peano curve Gcode')
-header.append(';author: Federico')
+header.append(';peano curve Gcode\n')
+header.append(';author: Federico\n')
 
-header.append('M140 S'+Tbed) # inizia a scaldare il piano fino a Tbed
-header.append('M104 T0 S'+Tex) # inizia a scaldare l'estrusore fino a Tex
-header.append('G21 ; use millimeters') #unita' di misura in millimetri
-header.append('G90') #usa coordinate assolute ripsetto all'origine della macchina
-header.append('G92 E0') # resetta la posizione dell'estrusore
-header.append('M82') #usa coordinate assolute anche per l'estusore
-header.append('M190 S'+Tbed+' ;bed temperature') # aspetta che la temperatura del piano sia raggiunta
-header.append('M109 T0 S'+Tex+' ; extruder temperature') # aspetta che la temperatura dell'estrusore sia raggiunta
-header.append('M106 S15 ; fan') #accendi la ventola (0 ferma 255 massima)
+header.append('M140 S'+Tbed+'\n') # inizia a scaldare il piano fino a Tbed
+header.append('M104 T0 S'+Tex+'\n') # inizia a scaldare l'estrusore fino a Tex
+header.append('G21 ; use millimeters\n') #unita' di misura in millimetri
+header.append('G90\n') #usa coordinate assolute ripsetto all'origine della macchina
+header.append('G92 E0\n') # resetta la posizione dell'estrusore
+header.append('M82\n') #usa coordinate assolute anche per l'estusore
+header.append('M190 S'+Tbed+' ;bed temperature\n') # aspetta che la temperatura del piano sia raggiunta
+header.append('M109 T0 S'+Tex+' ; extruder temperature\n') # aspetta che la temperatura dell'estrusore sia raggiunta
+header.append('M106 S15 ; fan\n') #accendi la ventola (0 ferma 255 massima)
 
 footer = []
-footer.append('M104 S0') #spegni l'estusore
-footer.append('M140 S0') # spegni il piano
-footer.append('G28 X0') #home X axis
-footer.append('M84') #sblocca i motori
+footer.append('M104 S0\n') #spegni l'estusore
+footer.append('M140 S0\n') # spegni il piano
+footer.append('G28 X0\n') #home X axis
+footer.append('M84\n') #sblocca i motori
 
 body = ["" for x in range(iterations)]
 for l in range(iterations):
@@ -99,11 +100,11 @@ def draw(vert1, vert2, layer):
 
 vertex = getNextVert(np.array(starting_point), np.array([starting_point[0]+dimension,starting_point[1]+dimension]))
 # add the skirt
-header.append('G0 X%f  Y%f Z%f ; skirt' % (starting_point[0]-5, starting_point[1]-5, dz0))
+header.append('G0 X%f  Y%f Z%f ; skirt\n' % (starting_point[0]-5, starting_point[1]-5, dz0))
 center = (vertex+2*np.array(starting_point)+np.array([dimension,dimension]))/3
-header.append('G92 E0    ; Reset the extruder')
-header.append('G2 X%F Y%f I%F J%f E%f'% (starting_point[0]-5, starting_point[1]-5, center[0], center[1], kE*math.pi*(dimension+10)/math.sqrt(3)))
-header.append('G2 X%F Y%f I%F J%f E%f'% (starting_point[0]-4, starting_point[1]-4, center[0], center[1], kE*math.pi*(dimension+18)/math.sqrt(3)))
+header.append('G92 E0    ; Reset the extruder\n')
+header.append('G2 X%F Y%f I%F J%f E%f\n'% (starting_point[0]-5, starting_point[1]-5, center[0], center[1], kE*math.pi*(dimension+10)/math.sqrt(3)))
+header.append('G2 X%F Y%f I%F J%f E%f\n'% (starting_point[0]-4, starting_point[1]-4, center[0], center[1], kE*math.pi*(dimension+18)/math.sqrt(3)))
 
 if print_antisnowflake:
     draw(np.array(starting_point), np.array([starting_point[0]+dimension,starting_point[1]+dimension]), 0)
@@ -116,25 +117,26 @@ else:
 
 
 # print the Gcode
+file = open(filename+'.gcode','w')
 for w in header:
-    print(w)
+    file.write(w)
 j = 1
 l = 0
 for e in reversed(body):
     if layer_distribution == 'linear':
         for i in range(layer_repetitions):
-            print('G0 X%f  Y%f Z%f ; layer%d' % (starting_point[0], starting_point[1], l*dz+dz0, l))
-            print(e)
+            file.write('G0 X%f  Y%f Z%f ; layer%d\n' % (starting_point[0], starting_point[1], l*dz+dz0, l))
+            file.write(e)
             l += 1
     elif layer_distribution == 'exponential':
         for i in range(layer_repetitions**j):
-            print('G0 X%f  Y%f Z%f ; layer%d' % (starting_point[0], starting_point[1], l*dz+dz0, l))
-            print(e)
+            file.write('G0 X%f  Y%f Z%f ; layer%d\n' % (starting_point[0], starting_point[1], l*dz+dz0, l))
+            file.write(e)
             l += 1
     else:
-        print('G0 X%f  Y%f Z%f ; layer%d' % (starting_point[0], starting_point[1], l*dz+dz0, l))
-        print(e)
+        file.write('G0 X%f  Y%f Z%f ; layer%d\n' % (starting_point[0], starting_point[1], l*dz+dz0, l))
+        file.write(e)
         l += 1
     j += 1
 for w in footer:
-    print(w)
+    file.write(w)

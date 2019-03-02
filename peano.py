@@ -1,6 +1,8 @@
 import numpy as np
 import math
+'''
 
+'''
 
 mat1 =np.array([[0, -1],[1, 0]])
 
@@ -26,7 +28,7 @@ thickness = 1
 
 start = []
 start.append(';peano curve Gcode')
-start.append(';author: Federico')
+start.append(';author: FedericoSold')
 
 
 start.append('M140 S'+Tbed) # inizia a scaldare il piano fino a Tbed
