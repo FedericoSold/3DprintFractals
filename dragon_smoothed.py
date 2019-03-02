@@ -1,10 +1,13 @@
 import numpy as np
 import math
+import sys
+
 
 # settings
 layers_number = 10 # number of layers (they are all identical)
 iterations = 12
 dimension = 4 # leght of the smallest segment in millimeters
+filename = 'dragon'
 
 # plotting variables
 starting_point = (100,100) # Use the center of the printing space
@@ -100,6 +103,8 @@ footer.append('G28 X0') #home X axis
 footer.append('M84') #sblocca i motori
 
 # print Gcode
+# open the file
+sys.stdout = open(filename+'.gcode', 'w')
 for s in header:
     print(s)
 for l in range(layers_number):
