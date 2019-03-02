@@ -53,23 +53,46 @@ E = 0
 
 direction = 0
 position = np.array(starting_point)
+max_position = position.copy()
+min_position = position.copy()
 for step in path:
     direction += step
     direction %= 4
     old_position = position.copy()
     if direction == 0:
         position[0] += dimension
+        if position[0]>max_position[0]:
+            max_position[0] = position[0]
     elif direction == 1:
         position[1] += dimension
+        if position[1]>max_position[1]:
+            max_position[1] = position[1]
     elif direction == 2:
         position[0] += -dimension
+        if position[0]<min_position[0]:
+            min_position[0] = position[0]
     else:
         position[1] += -dimension
+        if position[1]<min_position[1]:
+            min_position[1] = position[1]
     # draw the lines
     E += kE/math.sqrt(2)
     body.append('G1 X%f Y%f E%f' % ((3*old_position[0]+position[0])/4, (3*old_position[1]+position[1])/4, E))
     E += kE*(1/2+1/math.sqrt(2))
     body.append('G1 X%f Y%f E%f' % ((old_position[0]+3*position[0])/4, (old_position[1]+3*position[1])/4, E))
+
+# crate the skirt
+header.append('G92 E0     ; Reset the extruder')
+header.append('G0 X%f Y%f Z%f ; make skirt' % (min_position[0]-5, min_position[1]-5, dz0))
+header.append('G1 X%f Y%f E%f ' % (min_position[0]-5, max_position[1]+5, E))
+header.append('G1 X%f Y%f E%f ' % (max_position[0]+5, max_position[1]+5, E))
+header.append('G1 X%f Y%f E%f ' % (max_position[0]+5, min_position[1]-5, E))
+header.append('G1 X%f Y%f E%f ' % (min_position[0]-5, min_position[1]-5, E))
+header.append('G0 X%f Y%f ' % (min_position[0]-4, min_position[1]-4))
+header.append('G1 X%f Y%f E%f ' % (min_position[0]-4, max_position[1]+4, E))
+header.append('G1 X%f Y%f E%f ' % (max_position[0]+4, max_position[1]+4, E))
+header.append('G1 X%f Y%f E%f ' % (max_position[0]+4, min_position[1]-4, E))
+header.append('G1 X%f Y%f E%f ' % (min_position[0]-4, min_position[1]-4, E))
 
 footer.append('M104 S0') #spegni l'estusore
 footer.append('M140 S0') # spegni il piano

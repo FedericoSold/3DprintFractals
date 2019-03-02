@@ -5,7 +5,7 @@ import math
 layer_repetitions = 2
 layer_distribution = 'exponential'
 iterations = 5
-print_antisnowflake = False
+print_antisnowflake = True
 
 # useful constants
 bhr = math.sqrt(3)/2
@@ -98,6 +98,13 @@ def draw(vert1, vert2, layer):
         draw(point2, vert2, layer+1)
 
 vertex = getNextVert(np.array(starting_point), np.array([starting_point[0]+dimension,starting_point[1]+dimension]))
+# add the skirt
+header.append('G0 X%f  Y%f Z%f ; skirt' % (starting_point[0]-5, starting_point[1]-5, dz0))
+center = (vertex+2*np.array(starting_point)+np.array([dimension,dimension]))/3
+header.append('G92 E0    ; Reset the extruder')
+header.append('G2 X%F Y%f I%F J%f E%f'% (starting_point[0]-5, starting_point[1]-5, center[0], center[1], kE*math.pi*(dimension+10)/math.sqrt(3)))
+header.append('G2 X%F Y%f I%F J%f E%f'% (starting_point[0]-4, starting_point[1]-4, center[0], center[1], kE*math.pi*(dimension+18)/math.sqrt(3)))
+
 if print_antisnowflake:
     draw(np.array(starting_point), np.array([starting_point[0]+dimension,starting_point[1]+dimension]), 0)
     draw(np.array([starting_point[0]+dimension,starting_point[1]+dimension]), vertex, 0)
