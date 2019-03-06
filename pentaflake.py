@@ -3,8 +3,10 @@ import math
 
 # settings
 layer_repetitions = 2
-layer_distribution = 'exponential'
-iterations = 5
+layer_distribution = 'linear'
+iterations = 4
+dimension = 2
+filename = 'pentaflake'
 
 # useful constants
 phi1 = (math.sqrt(5)-1)/2+1
@@ -13,9 +15,9 @@ rot = np.array([[math.cos(theta),-math.sin(theta)],[math.sin(theta), math.cos(th
 
 
 #variabili
-starting_point = (10,10) # starting point in millimeters
+starting_point = (50,15) # starting point in millimeters
 dz0=0.2 # altezza primo layer
-dz=0.2 # layer height
+dz=0.3 # layer height
 k = 2
 dx = 0.2
 
@@ -31,24 +33,24 @@ dimension = 100
 thickness = 1
 
 header = []
-header.append(';peano curve Gcode')
-header.append(';author: Federico')
+header.append(';peano curve Gcode\n')
+header.append(';author: FedericoSold\n')
 
-header.append('M140 S'+Tbed) # inizia a scaldare il piano fino a Tbed
-header.append('M104 T0 S'+Tex) # inizia a scaldare l'estrusore fino a Tex
-header.append('G21 ; use millimeters') #unita' di misura in millimetri
-header.append('G90') #usa coordinate assolute ripsetto all'origine della macchina
-header.append('G92 E0') # resetta la posizione dell'estrusore
-header.append('M82') #usa coordinate assolute anche per l'estusore
-header.append('M190 S'+Tbed+' ;bed temperature') # aspetta che la temperatura del piano sia raggiunta
-header.append('M109 T0 S'+Tex+' ; extruder temperature') # aspetta che la temperatura dell'estrusore sia raggiunta
-header.append('M106 S15 ; fan') #accendi la ventola (0 ferma 255 massima)
+header.append('M140 S'+Tbed+' ; set bed temperature\n') # inizia a scaldare il piano fino a Tbed
+header.append('M104 T0 S'+Tex+' ; set extruder temperature\n') # inizia a scaldare l'estrusore fino a Tex
+header.append('G21 ; use millimeters\n') #unita' di misura in millimetri
+header.append('G90\n') #usa coordinate assolute ripsetto all'origine della macchina
+header.append('G92 E0 ; reset the extruder\n') # resetta la posizione dell'estrusore
+header.append('M82\n') #usa coordinate assolute anche per l'estusore
+header.append('M190 S'+Tbed+' ; wait for bed heating\n') # aspetta che la temperatura del piano sia raggiunta
+header.append('M109 T0 S'+Tex+' ; wait for extruder heating\n') # aspetta che la temperatura dell'estrusore sia raggiunta
+header.append('M106 S15 ; fan\n') #accendi la ventola (0 ferma 255 massima)
 
 footer = []
-footer.append('M104 S0') #spegni l'estusore
-footer.append('M140 S0') # spegni il piano
-footer.append('G28 X0') #home X axis
-footer.append('M84') #sblocca i motori
+footer.append('M104 S0 ; turn off extruder heater\n') #spegni l'estusore
+footer.append('M140 S0 ; turn off bed heater\n') # spegni il piano
+footer.append('G28 X0 ; go home\n') #home X axis
+footer.append('M84\n') #sblocca i motori
 
 body = ["" for x in range(iterations)]
 for l in range(iterations):
@@ -87,31 +89,31 @@ def draw(vert1, vert2, layer):
 
         for j in range(5):
             draw(verts[j], verts[j+1]-(verts[j+1]-verts[j])/phi1, layer+1)
-            draw(verts[j]+(verts[j+1]-verts[j])/phi1, verts[j+1], layer+1)
 
 
-draw(np.array(starting_point), np.array([starting_point[0]+10,starting_point[1]+10]), 0)
+draw(np.array(starting_point), np.array([starting_point[0]+dimension,starting_point[1]]), 0)
 
 # print the Gcode
+file = open(filename+'.gcode', 'w')
 for w in header:
-    print(w)
+    file.write(w)
 j = 1
 l = 0
 for e in reversed(body):
     if layer_distribution == 'linear':
         for i in range(layer_repetitions):
-            print('G0 X%f  Y%f Z%f ; layer%d' % (starting_point[0], starting_point[1], l*dz+dz0, l))
-            print(e)
+            file.write('G0 X%f  Y%f Z%f ; layer%d\n' % (starting_point[0], starting_point[1], l*dz+dz0, l))
+            file.write(e)
             l += 1
     elif layer_distribution == 'exponential':
         for i in range(layer_repetitions**j):
-            print('G0 X%f  Y%f Z%f ; layer%d' % (starting_point[0], starting_point[1], l*dz+dz0, l))
-            print(e)
+            file.write('G0 X%f  Y%f Z%f ; layer%d\n' % (starting_point[0], starting_point[1], l*dz+dz0, l))
+            file.write(e)
             l += 1
     else:
-        print('G0 X%f  Y%f Z%f ; layer%d' % (starting_point[0], starting_point[1], l*dz+dz0, l))
-        print(e)
+        file.write('G0 X%f  Y%f Z%f ; layer%d\n' % (starting_point[0], starting_point[1], l*dz+dz0, l))
+        file.write(e)
         l += 1
     j += 1
 for w in footer:
-    print(w)
+    file.write(w)
