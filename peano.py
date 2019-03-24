@@ -7,6 +7,7 @@ import math
 mat1 =np.array([[0, -1],[1, 0]])
 
 #variabili
+filename = 'peano_curve'
 starting_point = (10,10)
 z0=0.2 # altezza primo layer
 dz=0.2 # altezza layer
@@ -73,6 +74,7 @@ def draw(start, end, layer):
         draw(start+2*delta, end, layer+1)
 draw(np.array(starting_point), np.array([starting_point[0]+10,starting_point[1]+10]),0)
 # print Gcode
+file = open(filename+'.gcode', 'w')
 for w in start:
     print(w)
 for e in reversed(gcode):

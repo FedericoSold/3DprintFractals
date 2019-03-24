@@ -38,9 +38,9 @@ header.append(';author: FedericoSold\n')
 
 header.append('M140 S'+Tbed+' ; set bed temperature\n') # inizia a scaldare il piano fino a Tbed
 header.append('M104 T0 S'+Tex+' ; set extruder temperature\n') # inizia a scaldare l'estrusore fino a Tex
+header.append('G28 X0 Z0\n') #home X and Z axis
 header.append('G21 ; use millimeters\n') #unita' di misura in millimetri
 header.append('G90\n') #usa coordinate assolute ripsetto all'origine della macchina
-header.append('G92 E0 ; reset the extruder\n') # resetta la posizione dell'estrusore
 header.append('M82\n') #usa coordinate assolute anche per l'estusore
 header.append('M190 S'+Tbed+' ; wait for bed heating\n') # aspetta che la temperatura del piano sia raggiunta
 header.append('M109 T0 S'+Tex+' ; wait for extruder heating\n') # aspetta che la temperatura dell'estrusore sia raggiunta
@@ -93,6 +93,18 @@ def draw(vert1, vert2, layer):
 
 draw(np.array(starting_point), np.array([starting_point[0]+dimension,starting_point[1]]), 0)
 
+# create the skirt
+sp_0 = np.array(np.array(starting_point))
+sp_1 = sp_0 + np.array([dimension,0])
+sp_2 = getNextVert(sp_0, sp_1)
+sp_3 = getNextVert(sp_1, sp_2)
+sp_4 = getNextVert(sp_2, sp_3)
+center = (sp_0+sp_1+sp_2+sp_3+sp_4)/5
+header.append('; skirt\n')
+header.append('G92 E0 ; reset the extruder\n') # resetta la posizione dell'estrusore
+header.append('G0 X%f Y%f Z%f \n' % (starting_point[0]-5,starting_point[0],dz0))
+header.append('G2 X%f Y%f I%f J%f E%f \n' % (starting_point[0]-5,starting_point[1],center[0],center[1],kE*math.pi*(dimension+4)/math.tan(math.pi/5)))
+header.append('G2 X%f Y%f I%f J%f E%f \n' % (starting_point[0]-4,starting_point[1],center[0],center[1],kE*math.pi*(dimension+4)/math.tan(math.pi/5)))
 # print the Gcode
 file = open(filename+'.gcode', 'w')
 for w in header:

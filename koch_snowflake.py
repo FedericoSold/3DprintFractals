@@ -5,7 +5,7 @@ import math
 layer_repetitions = 2
 layer_distribution = 'exponential'
 iterations = 5
-print_antisnowflake = True
+print_antisnowflake = False
 filename = 'koch_snowflake'
 
 # useful constants
@@ -38,6 +38,7 @@ header.append(';author: Federico\n')
 
 header.append('M140 S'+Tbed+'\n') # inizia a scaldare il piano fino a Tbed
 header.append('M104 T0 S'+Tex+'\n') # inizia a scaldare l'estrusore fino a Tex
+header.append('G28 X0 Z0\n') #home X and Z axis
 header.append('G21 ; use millimeters\n') #unita' di misura in millimetri
 header.append('G90\n') #usa coordinate assolute ripsetto all'origine della macchina
 header.append('G92 E0\n') # resetta la posizione dell'estrusore
@@ -49,7 +50,6 @@ header.append('M106 S15 ; fan\n') #accendi la ventola (0 ferma 255 massima)
 footer = []
 footer.append('M104 S0\n') #spegni l'estusore
 footer.append('M140 S0\n') # spegni il piano
-footer.append('G28 X0\n') #home X axis
 footer.append('M84\n') #sblocca i motori
 
 body = ["" for x in range(iterations)]
