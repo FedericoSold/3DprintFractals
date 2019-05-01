@@ -2,10 +2,10 @@ import numpy as np
 import math
 
 # settings
-layer_repetitions = 2
-layer_distribution = 'exponential'
+layer_repetitions = 20 # number of layers (they are all identical)
+layer_distribution = 'linear'
 iterations = 5
-print_antisnowflake = False
+print_antisnowflake = True
 filename = 'koch_snowflake'
 
 # useful constants
@@ -14,19 +14,16 @@ theta = math.pi*2/3
 rot = np.array([[math.cos(theta),-math.sin(theta)],[math.sin(theta), math.cos(theta)]])
 
 
-#variabili
+# variables
 starting_point = (10,10) # starting point in millimeters
 dz0=0.2 # first layer height
 dz=0.2 # layer height
 k = 2
 dx = 0.2
 
-Tbed='15' # temperatura piano
-Tex='210' # temperatura estrusore
-v1='1200' # velocita' primo layer mm/min (20 mm/s)
-v2='2400' # velocita' altri layer mm/min (40 mm/s)
-vf='7800' # movimenti rapidi (130 mm/s)
-kE = 2*dz*0.4/math.pi/1.75**2 # moltiplicatore per quantità da estrudere
+Tbed='65' # bed temperature
+Tex='200' # extruder temperature
+kE = 2*dz*0.4/math.pi/1.75**2 #extruded material = kE*lenght
 
 
 dimension = 100
@@ -36,21 +33,21 @@ header = []
 header.append(';peano curve Gcode\n')
 header.append(';author: Federico\n')
 
-header.append('M140 S'+Tbed+'\n') # inizia a scaldare il piano fino a Tbed
-header.append('M104 T0 S'+Tex+'\n') # inizia a scaldare l'estrusore fino a Tex
-header.append('G28 X0 Z0\n') #home X and Z axis
-header.append('G21 ; use millimeters\n') #unita' di misura in millimetri
-header.append('G90\n') #usa coordinate assolute ripsetto all'origine della macchina
-header.append('G92 E0\n') # resetta la posizione dell'estrusore
-header.append('M82\n') #usa coordinate assolute anche per l'estusore
-header.append('M190 S'+Tbed+' ;bed temperature\n') # aspetta che la temperatura del piano sia raggiunta
-header.append('M109 T0 S'+Tex+' ; extruder temperature\n') # aspetta che la temperatura dell'estrusore sia raggiunta
-header.append('M106 S15 ; fan\n') #accendi la ventola (0 ferma 255 massima)
+header.append('M140 S'+Tbed+'\n') # heat up the bed
+header.append('M104 T0 S'+Tex+'\n') # iheat up the extruder
+header.append('G21 ; use millimeters\n') # use millimeters
+header.append('G90\n') # use absolute coordinates
+header.append('G92 E0\n') # reset extruder position
+header.append('M82\n') # use absolute coordinates
+header.append('M190 S'+Tbed+' ;bed temperature\n') # wait for bet temperature
+header.append('M109 T0 S'+Tex+' ; extruder temperature\n') # wait for extruder temperature
+header.append('M106 S15 ; fan\n') # turn on the fan
 
 footer = []
-footer.append('M104 S0\n') #spegni l'estusore
-footer.append('M140 S0\n') # spegni il piano
-footer.append('M84\n') #sblocca i motori
+footer.append('M104 S0\n') # turn off extruder
+footer.append('M140 S0\n') # turn off bed
+footer.append('G28 X0\n') # go home X axis
+footer.append('M84\n') # free the motors
 
 body = ["" for x in range(iterations)]
 for l in range(iterations):
@@ -71,7 +68,6 @@ def drawTriangle(v1, v2, layer):
 
 
 def draw(vert1, vert2, layer):
-    # the layer can be calculated from start and end
     if (layer<iterations):
         length = math.sqrt(sum((vert2-vert1)**2))
         point1 = vert1 + (vert2-vert1)/3
@@ -116,7 +112,7 @@ else:
     draw(np.array([starting_point[0],starting_point[1]]), vertex, 0)
 
 
-# print the Gcode
+# print the Gcode on file
 file = open(filename+'.gcode','w')
 for w in header:
     file.write(w)
@@ -140,3 +136,4 @@ for e in reversed(body):
     j += 1
 for w in footer:
     file.write(w)
+file.close()
