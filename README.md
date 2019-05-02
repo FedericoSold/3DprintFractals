@@ -18,9 +18,3 @@ As for the Peano curve, every layer rapresent an iteration of the construction.
 
 ## Koch Snowflacke
 
-
-
-## Usage
-For witing the Gcode into ``GcodeFile.gcode`` use 
-``$ python3 file.py -> GcodeFile.gcode`` 
-
